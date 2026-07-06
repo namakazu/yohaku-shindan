@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自分時間を取り戻す 余白診断</title>
+<meta name="description" content="なんでこんなに忙しいのか、わからないまま一日が終わる人へ。18問・3分で「今週まず減らすならこれ」がひとつ決まります。無料・登録不要。">
+
+<!-- ===== OGP（url と image は公開URLに差し替え） ===== -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="自分時間を取り戻す 余白診断">
+<meta property="og:description" content="なんでこんなに忙しいのか、わからないまま一日が終わる人へ。18問・3分で「今週まず減らすならこれ」がひとつ決まります。無料・登録不要。">
+<meta property="og:url" content="https://example.github.io/yohaku-shindan/">
+<meta property="og:image" content="https://example.github.io/yohaku-shindan/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --washi:#f3f1ea;        /* 和紙 × わずかに霧色 */
+  --washi-deep:#ebe8df;
+  --ink:#37372f;          /* 墨 */
+  --ink-soft:#6b6b60;
+  --kiri:#8a978f;         /* 霧青緑（アクセント） */
+  --kiri-line:#c9cec7;
+  --serif:"Shippori Mincho", serif;
+  --sans:"Zen Kaku Gothic New", sans-serif;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+html{scroll-behavior:smooth;}
+
+body{
+  background:var(--washi);
+  color:var(--ink);
+  font-family:var(--serif);
+  line-height:2;
+  letter-spacing:.06em;
+  -webkit-font-smoothing:antialiased;
+  /* 和紙の粒子 */
+  background-image:
+    radial-gradient(rgba(55,55,47,.022) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(138,151,143,.05) 0%, transparent 30%);
+  background-size:3px 3px, 100% 100%;
+}
+
+.page{
+  max-width:600px;
+  margin:0 auto;
+  padding:0 28px;
+}
+
+/* ====== ヒーロー ====== */
+.hero{
+  min-height:100svh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding-top:9vh;
+  padding-bottom:7vh;
+}
+
+.pain{
+  font-size:clamp(1.05rem, 4.2vw, 1.3rem);
+  font-weight:500;
+  line-height:2.3;
+  color:var(--ink);
+  opacity:0;
+  animation:rise 1.4s ease .2s forwards;
+}
+
+.title-block{
+  margin-top:8vh;
+  opacity:0;
+  animation:rise 1.4s ease .9s forwards;
+}
+
+.brand{
+  font-family:var(--sans);
+  font-size:.72rem;
+  letter-spacing:.42em;
+  color:var(--kiri);
+  margin-bottom:14px;
+}
+
+h1{
+  font-size:clamp(1.5rem, 6.4vw, 2.1rem);
+  font-weight:600;
+  letter-spacing:.1em;
+  line-height:1.8;
+}
+
+.lede{
+  margin-top:5.5vh;
+  font-size:clamp(.88rem, 3.5vw, .98rem);
+  color:var(--ink-soft);
+  line-height:2.4;
+  opacity:0;
+  animation:rise 1.4s ease 1.5s forwards;
+}
+
+.lede strong{
+  font-weight:600;
+  color:var(--ink);
+}
+
+/* ====== 呼吸する円 ＋ CTA ====== */
+.breath-zone{
+  padding:4vh 0 14vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+
+.breath{
+  width:150px;
+  height:150px;
+  margin:6vh 0;
+  border-radius:50%;
+  border:1px solid var(--kiri-line);
+  position:relative;
+  animation:breathe 9s ease-in-out infinite;
+}
+.breath::before{
+  content:"";
+  position:absolute;
+  inset:22px;
+  border-radius:50%;
+  background:radial-gradient(circle at 42% 38%, rgba(138,151,143,.28), rgba(138,151,143,.07) 70%);
+  animation:breathe-inner 9s ease-in-out infinite;
+}
+.breath-hint{
+  font-family:var(--sans);
+  font-size:.68rem;
+  letter-spacing:.3em;
+  color:var(--kiri);
+}
+
+.cta{
+  display:inline-block;
+  margin-top:5vh;
+  padding:20px 44px;
+  background:var(--ink);
+  color:var(--washi);
+  font-family:var(--serif);
+  font-size:1rem;
+  letter-spacing:.14em;
+  text-decoration:none;
+  border-radius:2px;
+  transition:opacity .5s ease, transform .5s ease;
+}
+.cta:hover{opacity:.82; transform:translateY(-1px);}
+
+.cta-note{
+  margin-top:16px;
+  font-family:var(--sans);
+  font-size:.72rem;
+  letter-spacing:.2em;
+  color:var(--ink-soft);
+}
+
+/* ====== 導入文 ====== */
+.about{
+  padding:0 0 16vh;
+}
+
+.about h2{
+  font-size:.8rem;
+  font-family:var(--sans);
+  font-weight:500;
+  letter-spacing:.38em;
+  color:var(--kiri);
+  margin-bottom:5vh;
+}
+
+.about p{
+  font-size:clamp(.9rem, 3.6vw, .98rem);
+  line-height:2.5;
+  color:var(--ink);
+}
+
+.about p + p{margin-top:4vh;}
+
+.hr{
+  width:44px;
+  height:1px;
+  background:var(--kiri-line);
+  margin:0 0 5vh;
+}
+
+.axes{
+  margin-top:6vh;
+  font-family:var(--sans);
+  font-size:.76rem;
+  letter-spacing:.18em;
+  color:var(--ink-soft);
+  line-height:2.6;
+}
+
+/* ====== 思想層（フッター手前） ====== */
+.philosophy{
+  border-top:1px solid var(--kiri-line);
+  padding:8vh 0 4vh;
+  font-size:.82rem;
+  line-height:2.5;
+  color:var(--ink-soft);
+}
+
+.philosophy .maker{
+  margin-top:3vh;
+  font-family:var(--sans);
+  font-size:.74rem;
+  letter-spacing:.12em;
+}
+.philosophy .maker a{
+  color:var(--kiri);
+  text-decoration:underline;
+  text-underline-offset:4px;
+}
+
+footer{
+  padding:0 0 6vh;
+  font-family:var(--sans);
+  font-size:.68rem;
+  letter-spacing:.2em;
+  color:var(--kiri);
+}
+
+/* ====== animation ====== */
+@keyframes rise{
+  from{opacity:0; transform:translateY(14px);}
+  to{opacity:1; transform:translateY(0);}
+}
+@keyframes breathe{
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.12);}
+}
+@keyframes breathe-inner{
+  0%,100%{opacity:.55;}
+  50%{opacity:1;}
+}
+
+@media (prefers-reduced-motion: reduce){
+  .pain,.title-block,.lede{animation:none;opacity:1;}
+  .breath,.breath::before{animation:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ヒーロー -->
+  <section class="hero">
+    <p class="pain">
+      なんでこんなに忙しいのか、<br>
+      自分でもわからないまま一日が終わる。
+    </p>
+
+    <div class="title-block">
+      <p class="brand">YOHAKU SHINDAN</p>
+      <h1>自分時間を取り戻す<br>余白診断</h1>
+    </div>
+
+    <p class="lede">
+      時間・頭の中・気持ち・部屋・お金・人間関係。<br>
+      あなたをすり減らしているものの正体を18問で特定して、<br>
+      <strong>「今週まず減らすならこれ」</strong>をひとつだけお渡しします。
+    </p>
+  </section>
+
+  <!-- 呼吸する円 ＋ CTA -->
+  <section class="breath-zone">
+    <p class="breath-hint">ひと呼吸、どうぞ</p>
+    <div class="breath" aria-hidden="true"></div>
+
+    <!-- 診断本体へのリンクに差し替え -->
+    <a class="cta" href="./shindan.html">3分で「今週減らすもの」を決める</a>
+    <p class="cta-note">無料・登録不要・スマホでOK</p>
+  </section>
+
+  <!-- 導入文 -->
+  <section class="about">
+    <h2>この診断でわかること</h2>
+    <div class="hr"></div>
+    <p>
+      がんばりが足りないわけでも、時間の使い方が下手なわけでもなく、たぶん「減らしていいもの」が見えていないだけです。
+    </p>
+    <p>
+      18問に答えると、6つの軸のどこが一番詰まっているかと、あなたのタイプ、そして今週手をつける一手がひとつ出ます。
+    </p>
+    <p>
+      全部を変える必要はありません。<br>
+      ひとつ減れば、来週は少しだけ軽くなります。
+    </p>
+    <p class="axes">
+      時間　／　頭の中　／　気持ち　／　部屋　／　お金　／　人間関係
+    </p>
+  </section>
+
+  <!-- 思想層 -->
+  <section class="philosophy">
+    <p>
+      この診断は「テクノロジーで少しずつ余白を作る実験」のひとつとして、余白ゼロの会社員が自分のために作ったものです。
+    </p>
+    <p class="maker">
+      実験のようすはこちらで発信しています →
+      <a href="https://x.com/kazutech1000" target="_blank" rel="noopener">かず｜余白ゼロの会社員</a>
+    </p>
+  </section>
+
+  <footer>
+    &copy; kazu — yohaku project
+  </footer>
+
+</div>
+
+</body>
+</html>

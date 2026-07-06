@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自分時間がない原因診断 ｜ 今週やめることが3分でわかる</title>
+<meta name="description" content="忙しいのに何に疲れているか分からない。18の問いで、あなたの余白を奪っている負荷を6タイプで見える化。診断のあと「今週やめること」までお渡しします。">
+<!-- ▼ 公開後、URLを実際のGitHub PagesのURLに置き換えてください -->
+<meta property="og:title" content="自分時間がない原因診断">
+<meta property="og:description" content="あなたの余白を奪っているものが、3分でわかる。結果では「今週やめること」まで。">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://USERNAME.github.io/REPO/img/ogp.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EFF1EC;
+    --paper-soft:#E7E9E2;
+    --ink:#27302C;
+    --ink-soft:#4A544F;
+    --muted:#8B938C;
+    --line:#D4D7CE;
+    --indigo:#3D5A63;      /* 圧迫・埋まってる量 */
+    --indigo-soft:#6E8A91;
+    --gold:#B49256;        /* 結果のアクセント・ごく控えめに */
+    --gold-soft:#CDB387;
+    --void:#F7F8F4;        /* 余白の側 */
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:"Zen Kaku Gothic New",sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.85;
+    position:relative;
+    overflow-x:hidden;
+  }
+  /* faint paper grain */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  }
+  .wrap{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:0 28px;min-height:100vh;display:flex;flex-direction:column}
+  .mincho{font-family:"Shippori Mincho",serif}
+
+  /* ---------- breathing orb ---------- */
+  .breath{width:84px;height:84px;border-radius:50%;margin:0 auto;
+    background:radial-gradient(circle at 50% 45%, var(--void) 0%, var(--paper-soft) 70%);
+    border:1px solid var(--line);
+    box-shadow:0 0 0 0 rgba(61,90,99,.10);
+    animation:breathe 9s ease-in-out infinite}
+  @keyframes breathe{
+    0%,100%{transform:scale(.86);box-shadow:0 0 0 0 rgba(61,90,99,0)}
+    50%{transform:scale(1.06);box-shadow:0 0 28px 6px rgba(61,90,99,.07)}
+  }
+
+  /* ---------- intro ---------- */
+  .screen{flex:1;display:none;flex-direction:column;justify-content:center;padding:56px 0;animation:fade .7s ease both}
+  .screen.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  .eyebrow{font-size:12px;letter-spacing:.32em;color:var(--muted);text-align:center;margin-bottom:30px;font-weight:500}
+  .title{font-size:clamp(30px,8.4vw,42px);font-weight:600;line-height:1.5;text-align:center;letter-spacing:.04em}
+  .title small{display:block;font-size:.52em;color:var(--ink-soft);letter-spacing:.18em;margin-top:14px;font-weight:500}
+  .lede{margin-top:34px;text-align:center;color:var(--ink-soft);font-size:15px;line-height:2.1}
+  .meta{margin-top:30px;text-align:center;color:var(--muted);font-size:12.5px;letter-spacing:.06em}
+
+  .btn{display:block;width:100%;max-width:300px;margin:40px auto 0;padding:17px;
+    background:var(--ink);color:var(--paper);border:none;border-radius:2px;
+    font-family:"Zen Kaku Gothic New",sans-serif;font-size:15px;font-weight:500;letter-spacing:.14em;
+    cursor:pointer;transition:.35s;position:relative;overflow:hidden}
+  .btn:hover{background:var(--indigo);letter-spacing:.2em}
+  .btn.ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line)}
+  .btn.ghost:hover{background:transparent;border-color:var(--ink);color:var(--ink)}
+
+  .disclaimer{margin-top:28px;text-align:center;font-size:11px;line-height:1.9;color:var(--muted);
+    max-width:380px;margin-left:auto;margin-right:auto}
+
+  /* ---------- quiz ---------- */
+  .q-top{padding-top:40px}
+  .progress-line{height:1px;background:var(--line);position:relative;margin-bottom:14px}
+  .progress-line span{position:absolute;left:0;top:0;height:1px;background:var(--ink);transition:width .5s ease}
+  .q-count{display:flex;justify-content:space-between;font-size:11.5px;letter-spacing:.16em;color:var(--muted)}
+  .q-axis{color:var(--indigo);font-weight:500}
+  .q-body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:18px 0 30px}
+  .q-num{font-size:13px;color:var(--gold);letter-spacing:.2em;margin-bottom:20px}
+  .q-text{font-size:clamp(20px,5.6vw,25px);font-weight:500;line-height:1.85;letter-spacing:.02em}
+  .opts{margin-top:38px;display:flex;flex-direction:column;gap:11px}
+  .opt{padding:15px 20px;background:var(--void);border:1px solid var(--line);border-radius:2px;
+    font-size:15px;color:var(--ink-soft);cursor:pointer;text-align:left;transition:.22s;
+    font-family:inherit;letter-spacing:.04em;display:flex;align-items:center;gap:14px}
+  .opt::before{content:"";width:9px;height:9px;border-radius:50%;border:1px solid var(--muted);flex:none;transition:.22s}
+  .opt:hover{border-color:var(--ink);color:var(--ink);transform:translateX(3px)}
+  .opt:hover::before{border-color:var(--indigo)}
+  .opt.sel{border-color:var(--ink);color:var(--ink);background:#fff}
+  .opt.sel::before{background:var(--indigo);border-color:var(--indigo)}
+  .q-nav{display:flex;justify-content:flex-start;padding-bottom:40px}
+  .back{background:none;border:none;color:var(--muted);font-family:inherit;font-size:13px;cursor:pointer;letter-spacing:.08em;padding:8px 0}
+  .back:hover{color:var(--ink)}
+  .back[disabled]{opacity:0;pointer-events:none}
+
+  /* ---------- result ---------- */
+  .r-eyebrow{font-size:11px;letter-spacing:.3em;color:var(--muted);text-align:center;margin-bottom:18px}
+  .r-type{font-size:clamp(28px,8vw,40px);font-weight:700;text-align:center;letter-spacing:.05em;line-height:1.4}
+  .r-sub{text-align:center;color:var(--ink-soft);font-size:13.5px;margin-top:16px;letter-spacing:.08em}
+  .r-sub b{color:var(--indigo);font-weight:500}
+  .r-desc{margin-top:26px;background:var(--void);border:1px solid var(--line);border-radius:3px;padding:24px 22px;
+    font-size:14.5px;line-height:2.05;color:var(--ink-soft)}
+
+  .lede b{color:var(--ink);font-weight:700}
+
+  /* intro character teaser */
+  .chars{display:flex;justify-content:center;gap:10px;margin-top:26px}
+  .chars .c{width:52px;height:52px;border-radius:50%;overflow:hidden;border:1px solid var(--line);background:var(--void)}
+  .chars img{width:100%;height:100%;object-fit:cover;display:block}
+  .chars-cap{text-align:center;font-size:11.5px;color:var(--muted);margin-top:10px;letter-spacing:.08em}
+
+  /* share */
+  .share-row{display:flex;gap:10px;margin-top:4px}
+  .share-btn{flex:1;padding:14px;border:1px solid var(--line);border-radius:2px;background:var(--void);
+    font-family:inherit;font-size:13.5px;color:var(--ink-soft);cursor:pointer;letter-spacing:.06em;transition:.25s}
+  .share-btn:hover{border-color:var(--ink);color:var(--ink)}
+
+  /* character */
+  .r-char{width:200px;height:200px;margin:6px auto 22px;border-radius:50%;overflow:hidden;
+    border:1px solid var(--line);background:var(--void);animation:rise .7s ease both}
+  .r-char img{width:100%;height:100%;object-fit:cover;display:block}
+  .r-char.noimg{display:none}
+  .r-typelabel{text-align:center;font-size:12px;letter-spacing:.24em;color:var(--gold);font-weight:700;margin-bottom:10px}
+
+  /* headline action: 今週まず減らすならこれ */
+  .headline{margin-top:30px;background:var(--ink);color:var(--paper);border-radius:4px;padding:26px 24px;animation:rise .6s ease both}
+  .headline .hl-label{font-size:11px;letter-spacing:.22em;color:var(--gold-soft);margin-bottom:14px;font-weight:500}
+  .headline .hl-text{font-size:clamp(18px,5vw,22px);font-weight:600;line-height:1.7;letter-spacing:.02em;font-family:"Shippori Mincho",serif}
+
+  /* today do / don't */
+  .twocol{margin-top:14px;display:flex;gap:12px}
+  .mini{flex:1;background:var(--void);border:1px solid var(--line);border-radius:4px;padding:18px 16px}
+  .mini .m-label{font-size:11px;letter-spacing:.08em;margin-bottom:10px;font-weight:700}
+  .mini.do .m-label{color:var(--indigo)}
+  .mini.skip .m-label{color:var(--muted)}
+  .mini .m-text{font-size:13px;line-height:1.75;color:var(--ink-soft)}
+  @media (max-width:430px){.twocol{flex-direction:column}}
+
+  /* service hint */
+  .svc{border:1px solid var(--line);border-radius:3px;overflow:hidden}
+  .svc-row{padding:15px 18px;border-bottom:1px solid var(--line);background:var(--void)}
+  .svc-row:last-child{border-bottom:none}
+  .svc-cat{font-size:13.5px;font-weight:500;color:var(--ink)}
+  .svc-axis{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.65}
+
+  /* paid plan teaser */
+  .teaser{background:linear-gradient(180deg,var(--void),var(--paper-soft));border:1px solid var(--line);border-radius:4px;padding:22px 20px;margin-bottom:14px}
+  .teaser .t-title{font-size:15px;font-weight:600;font-family:"Shippori Mincho",serif;margin-bottom:8px}
+  .teaser .t-body{font-size:13px;line-height:1.85;color:var(--ink-soft)}
+
+  .r-section{margin-top:46px}
+  .r-label{font-size:12px;letter-spacing:.22em;color:var(--muted);margin-bottom:22px;font-weight:500;
+    display:flex;align-items:center;gap:14px}
+  .r-label::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  /* axis bars — empty side = 余白 */
+  .bar{margin-bottom:20px;animation:rise .6s ease both}
+  .bar-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .bar-name{font-size:14px;font-weight:500}
+  .bar-void{font-size:11.5px;color:var(--indigo-soft);letter-spacing:.06em}
+  .bar-track{height:10px;background:var(--void);border:1px solid var(--line);border-radius:6px;overflow:hidden;position:relative}
+  .bar-fill{height:100%;background:var(--indigo);border-radius:6px 0 0 6px;width:0;transition:width 1s cubic-bezier(.2,.7,.2,1)}
+  .bar.top .bar-fill{background:linear-gradient(90deg,var(--indigo),var(--indigo-soft))}
+  .bar.top .bar-name::after{content:" 主";font-size:10px;color:var(--gold);letter-spacing:.1em;font-weight:700;vertical-align:super}
+  .bar.sub .bar-name::after{content:" 副";font-size:10px;color:var(--indigo-soft);letter-spacing:.1em;vertical-align:super}
+
+  /* actions this week */
+  .acts{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:3px;overflow:hidden}
+  .act{background:var(--void);padding:18px 20px;display:flex;gap:16px;align-items:flex-start}
+  .act-tag{flex:none;width:60px;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--indigo);
+    font-family:"Shippori Mincho",serif;padding-top:1px}
+  .act-tag.keep{color:var(--gold)}
+  .act-text{font-size:14px;line-height:1.8;color:var(--ink-soft)}
+
+  .r-note{margin-top:34px;font-size:11px;line-height:1.95;color:var(--muted);text-align:center;
+    border-top:1px solid var(--line);padding-top:22px}
+
+  .codebox{width:100%;height:128px;background:var(--void);border:1px solid var(--line);border-radius:3px;
+    padding:14px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:11px;line-height:1.7;color:var(--ink-soft);resize:vertical}
+
+  .credit{text-align:center;font-size:11px;color:var(--muted);letter-spacing:.2em;padding:34px 0 46px}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- INTRO -->
+  <section class="screen active" id="intro">
+    <div class="breath" style="margin-bottom:36px"></div>
+    <p class="eyebrow">あなたの余白を奪っているものが、3分でわかる</p>
+    <h1 class="title mincho">自分時間がない<br>原因診断<small>診断のあと、「今週やめること」までお渡しします</small></h1>
+    <p class="lede">忙しいのに、何に疲れているのか分からない。<br>その「なんとなく」を、18の問いで6つの負荷にほどきます。<br>結果では、<b>今週まず減らすならこれ</b>が見えてきます。</p>
+    <p class="meta">所要 約3分 ・ 登録不要</p>
+    <div class="chars">
+      <div class="c"><img src="img/hamster.jpg" alt="" loading="lazy"></div>
+      <div class="c"><img src="img/penguin.jpg" alt="" loading="lazy"></div>
+      <div class="c"><img src="img/cushion.jpg" alt="" loading="lazy"></div>
+      <div class="c"><img src="img/risu.jpg" alt="" loading="lazy"></div>
+      <div class="c"><img src="img/tanuki.jpg" alt="" loading="lazy"></div>
+    </div>
+    <p class="chars-cap">あなたの余白を奪っているのは、どのコ？</p>
+    <button class="btn" onclick="start()">診断をはじめる</button>
+    <p class="disclaimer">この診断は、あなたの性格や心身の状態を断定するものではありません。日々の生活で「どこに負荷が集まりやすいか」を知るための自己理解コンテンツです。医療・心理療法・法律・金融助言を目的とするものではありません。強い不調や深刻な悩みがある場合は、専門機関や専門家への相談をご検討ください。</p>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="screen" id="quiz">
+    <div class="q-top">
+      <div class="progress-line"><span id="pbar"></span></div>
+      <div class="q-count"><span id="pcount">1 / 18</span><span class="q-axis" id="paxis">時間の余白</span></div>
+    </div>
+    <div class="q-body">
+      <div class="q-num mincho" id="qnum">01</div>
+      <p class="q-text" id="qtext"></p>
+      <div class="opts" id="opts"></div>
+    </div>
+    <div class="q-nav"><button class="back" id="back" onclick="prev()">← もどる</button></div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="screen" id="result">
+    <p class="r-eyebrow" style="margin-top:40px">あなたの余白を奪っているのは</p>
+    <div class="r-char" id="rChar"><img id="rCharImg" alt="" onerror="this.parentElement.classList.add('noimg')"></div>
+    <p class="r-typelabel" id="rLabel"></p>
+    <h2 class="r-type mincho" id="rType"></h2>
+    <p class="r-sub" id="rSub"></p>
+    <div class="r-desc" id="rDesc"></div>
+
+    <div class="headline">
+      <div class="hl-label">今週、まず減らすならこれ</div>
+      <div class="hl-text" id="rCutFirst"></div>
+    </div>
+    <div class="twocol">
+      <div class="mini do"><div class="m-label">今日10分でやること</div><div class="m-text" id="rToday"></div></div>
+      <div class="mini skip"><div class="m-label">今日はやらなくていいこと</div><div class="m-text" id="rSkip"></div></div>
+    </div>
+
+    <div class="r-section">
+      <div class="r-label">余白を奪っている要因</div>
+      <div id="rBars"></div>
+    </div>
+
+    <div class="r-section">
+      <div class="r-label">1週間でできる、4つのレバー</div>
+      <div class="acts" id="rActs"></div>
+    </div>
+
+    <div class="r-section">
+      <div class="r-label">お金で買える余白</div>
+      <div class="svc" id="rSvc"></div>
+    </div>
+
+    <div class="r-section">
+      <div class="r-label">この結果をシェア</div>
+      <div class="share-row">
+        <button class="share-btn" onclick="shareX()">Xでシェアする</button>
+        <button class="share-btn" onclick="copyLink(this)">リンクをコピー</button>
+      </div>
+    </div>
+
+    <div class="r-section" id="codeSection">
+      <div class="r-label">もっと具体的に減らしたい方へ</div>
+      <div class="teaser">
+        <div class="t-title">1週間やめることプラン</div>
+        <div class="t-body">あなたのタイプに合わせて、1週間ぶんの「やめる・任せる・自動化・買って減らす」リストと、家族や職場への伝え方テンプレをまとめてお届けします。</div>
+      </div>
+      <p style="font-size:13px;color:var(--ink-soft);line-height:1.95;margin-bottom:14px">受け取りには、下の結果コードを購入フォームに貼り付けてください（コピペ・メール入力をなくすLINE受け取りも準備中です）。</p>
+      <textarea id="codeArea" readonly class="codebox"></textarea>
+      <button class="btn ghost" style="margin-top:12px" onclick="copyCode(this)">結果コードをコピー</button>
+    </div>
+
+    <p class="r-note">この診断は「正解」ではありません。いまの自分を眺めて、今週ひとつだけ動かすための地図です。<br>全部やる必要はありません。一番ゆるそうな1つから。</p>
+    <button class="btn ghost" onclick="reset()">もう一度診断する</button>
+    <p class="credit">余白を、作ろう。</p>
+  </section>
+
+</div>
+
+<script>
+const AXES = [
+  {key:'time',  name:'時間', type:'予定パンパンハムスター', label:'時間過密', img:'img/hamster.jpg'},
+  {key:'mind',  name:'判断', type:'決めすぎペンギン',       label:'判断疲れ', img:'img/penguin.jpg'},
+  {key:'heart', name:'感情', type:'抱えこみクッション',     label:'感情圧迫', img:'img/cushion.jpg'},
+  {key:'notify',name:'通知', type:'通知ビクビクうさぎ',     label:'通知依存', img:'img/usagi.jpg'},
+  {key:'space', name:'空間', type:'片付け迷子リス',         label:'空間詰まり', img:'img/risu.jpg'},
+  {key:'money', name:'お金', type:'不安貯金たぬき',         label:'金銭不安', img:'img/tanuki.jpg'},
+];
+
+const QUESTIONS = [
+  {a:'time', t:'自分のためだけに使える時間が、ほとんどない'},
+  {a:'mind', t:'予定は少なくても、頭の中がずっと忙しい'},
+  {a:'heart',t:'休むことに、どこか罪悪感がある'},
+  {a:'notify',t:'通知が来ると、作業や休憩を中断してでも見てしまう'},
+  {a:'space',t:'部屋やデスクが片付かず、なんとなく落ち着かない'},
+  {a:'money',t:'お金の不安があって、休む・人に頼むのをためらう'},
+  {a:'time', t:'気づくと一日が終わっていて、何をしたか思い出せない'},
+  {a:'mind', t:'何を食べるか・何からやるか、決めるだけで疲れる'},
+  {a:'heart',t:'頼まれると断りづらく、つい引き受けてしまう'},
+  {a:'notify',t:'休んでいる時も、スマホやSNSが気になって落ち着かない'},
+  {a:'space',t:'探し物に、地味に時間を取られている'},
+  {a:'money',t:'「自分のため」にお金を使うのが、少し後ろめたい'},
+  {a:'time', t:'予定や締め切りに、いつも追われている感じがする'},
+  {a:'mind', t:'何かを決めること自体に、疲れていると感じる'},
+  {a:'heart',t:'「やらなきゃ」という責任感で、気持ちが重い'},
+  {a:'notify',t:'気づくと、必要のない情報まで見続けてしまう'},
+  {a:'space',t:'スマホやPCの中（通知・タブ・写真）が散らかっている'},
+  {a:'money',t:'将来のお金を考えると、気持ちが落ち着かない'},
+];
+
+const OPTIONS = [
+  {t:'とてもあてはまる', v:3},
+  {t:'ややあてはまる',   v:2},
+  {t:'あまりあてはまらない', v:1},
+  {t:'あてはまらない',   v:0},
+];
+
+const RESULTS = {
+  time:{
+    desc:'予定とタスクが詰まりすぎて、自分のために使える時間がほとんど残っていない状態です。問題は「能力」ではなく「予定の引き算」。入ってくる前にひとつ断ることから、時間は戻りはじめます。',
+    cutFirst:'今週入ってくる予定を、ひとつ「最初から受けない」。判断する前に枠を閉じるのがコツです。',
+    today:'カレンダーに30分の空き枠を1つ入れる（誰にも渡さない時間として）',
+    skip:'「あとでまとめて」で済む連絡への即レス',
+    svc:[
+      ['家事・買い物の外部化（家事代行・ネットスーパー）','選ぶ軸：単発で頼めるか／留守でも回るか'],
+      ['ミールキット','選ぶ軸：献立を考えなくて済む範囲の広さ'],
+    ],
+    acts:[
+      ['やめる','「とりあえず参加」の予定を、今週ひとつ断ってみる'],
+      ['任せる','名前のない家事をひとつ、家族か外部サービスに渡す'],
+      ['自動化','定期の買い物や支払いを、自動（定期便・自動引落）にする'],
+      ['守る','週に30分、誰にも渡さない時間を、先にカレンダーへ入れる'],
+    ]},
+  mind:{
+    desc:'頭の中が常に何かで埋まっていて、休んでいても休まらない状態です。情報や判断が多すぎると脳は疲れます。「考えない・選ばない」設計を増やすほど、頭に余白が戻ります。',
+    cutFirst:'「毎回決めている」ことをひとつ、定番化して"選ぶ"のをやめる。',
+    today:'通知を1つオフにする（まずはバッジ表示だけでも）',
+    skip:'夜にやる決めごと・調整ごと（朝に回す）',
+    svc:[
+      ['予定共有・タスク整理（共有カレンダー・タスク管理）','選ぶ軸：家族や同僚が実際に使ってくれるか'],
+      ['献立サービス','選ぶ軸：毎日の"決める回数"がどれだけ減るか'],
+    ],
+    acts:[
+      ['やめる','通知をひとつオフにする（まずバッジ表示だけでも）'],
+      ['任せる','献立や日用品を定番化して、毎回「選ぶ」のをやめる'],
+      ['自動化','よくやる作業を、ショートカットや定型文にしておく'],
+      ['守る','夜の30分だけ、何も決めごとをしない時間をつくる'],
+    ]},
+  heart:{
+    desc:'人の感情や空気を受け取りすぎて、自分の気持ちが置き去りになりやすい状態です。断りづらさや「ちゃんとやらなきゃ」の積み重ねで、休んでも回復しづらくなります。境界線を引くことは、関係を壊すことではありません。',
+    cutFirst:'「ちゃんとやらなきゃ」をひとつ、60点で手放す。完璧の手前で止める練習です。',
+    today:'何もしない時間を、罪悪感なしで5分だけ確保する',
+    skip:'自分を責める振り返り（今日はしない）',
+    svc:[
+      ['書き出す場所をひとつ（ジャーナリング・メモ）','選ぶ軸：気軽に続けられるか'],
+      ['断る・頼む文面のテンプレ','選ぶ軸：角を立てずに言えるか'],
+      ['つらさが続くときは','無理せず、公的な相談窓口や専門家も選択肢に。アプリはあくまで補助に。'],
+    ],
+    acts:[
+      ['やめる','「ちゃんとやらなきゃ」をひとつ、60点で手放す'],
+      ['任せる','抱えている不安を、信頼できる人に一度話してみる'],
+      ['自動化','心配ごとを書き出す場所をひとつ決め、頭の外に出す'],
+      ['守る','罪悪感なしで「何もしない時間」を、まず5分だけ確保する'],
+    ]},
+  notify:{
+    desc:'スマホや通知、SNSに反応し続けて、集中と休息が細切れに分断されている状態です。意志の弱さではなく、通知の設計の問題。「見る回数」を仕組みで減らすほど、頭に静けさが戻ります。',
+    cutFirst:'通知をひとつオフにする。まずは一番どうでもいいアプリから。',
+    today:'ホーム画面の1ページ目から、SNSアプリを1つ移動する',
+    skip:'目的のないタイムライン巡回（今日は1回スキップ）',
+    svc:[
+      ['スマホの集中モード・通知の時間帯設定','選ぶ軸：初期設定が一度で済むか'],
+      ['通知整理チェックリスト','選ぶ軸：アプリごとに要否を仕分けできるか'],
+    ],
+    acts:[
+      ['やめる','不要な通知をひとつオフにする（まずバッジ表示だけでも）'],
+      ['任せる','「即レスしない時間帯」を決めて、先に周りへ共有する'],
+      ['自動化','集中モードを時間帯で自動オンにしておく'],
+      ['守る','寝る前30分だけ、スマホを別の部屋に置く'],
+    ]},
+  space:{
+    desc:'部屋・デスク・デジタル環境が詰まっていて、行動や休息に地味な負荷がかかっている状態です。空間の乱れは判断と集中を削ります。一気にではなく、一点だけ「空ける」のが効きます。',
+    cutFirst:'「いつか使うかも」をひとつだけ手放す。一気にやらないのがコツです。',
+    today:'デスクか玄関、1か所だけ「何も置かない場所」をつくる',
+    skip:'家じゅうの完璧な片付け（全部やろうとしない）',
+    svc:[
+      ['整理収納・収納用品','選ぶ軸：自分でやるか／任せるか'],
+      ['掃除の外部化','選ぶ軸：頻度と、気力の節約になるか'],
+    ],
+    acts:[
+      ['やめる','「いつか使うかも」を、今週ひとつ手放す'],
+      ['任せる','整理が重いなら、収納サービスや家族の手を借りる'],
+      ['自動化','よく使う物の定位置を決めて、「探さない」状態にする'],
+      ['守る','デスクか玄関、1か所だけ「何も置かない場所」をつくる'],
+    ]},
+  money:{
+    desc:'お金の不安があることで、休む・頼む・自分に使うという選択肢が取りづらくなっている状態です。不安の正体は「見えていないこと」が大半。可視化と仕組み化で、選べる余地が戻ります。',
+    cutFirst:'使途のあいまいな固定費・サブスクをひとつ見直す。',
+    today:'先取りの自動振り分けを1つ設定する',
+    skip:'将来の不安を漠然と考え続けること（数字にしてから考える）',
+    svc:[
+      ['家計の自動記録（家計簿アプリ・テンプレ）','選ぶ軸：入力がどれだけ楽か'],
+      ['固定費の見直し','選ぶ軸：一度やれば効果が続くか'],
+    ],
+    acts:[
+      ['やめる','使途のあいまいな固定費・サブスクを、ひとつ見直す'],
+      ['任せる','お金の管理を、家計簿や自動記録の仕組みに任せる'],
+      ['自動化','先取りの振り分け（自動積立など）を設定しておく'],
+      ['守る','「これは自分のため」と決めた小さな予算を、確保しておく'],
+    ]},
+};
+
+let answers = new Array(QUESTIONS.length).fill(null);
+let cur = 0;
+
+function start(){ show('quiz'); cur=0; render(); }
+function reset(){ answers.fill(null); cur=0; show('intro'); }
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'instant'});
+}
+
+function render(){
+  const q = QUESTIONS[cur];
+  const axis = AXES.find(a=>a.key===q.a);
+  document.getElementById('pbar').style.width = ((cur)/QUESTIONS.length*100)+'%';
+  document.getElementById('pcount').textContent = (cur+1)+' / '+QUESTIONS.length;
+  document.getElementById('paxis').textContent = axis.name;
+  document.getElementById('qnum').textContent = String(cur+1).padStart(2,'0');
+  document.getElementById('qtext').textContent = q.t;
+  document.getElementById('back').disabled = cur===0;
+
+  const wrap = document.getElementById('opts');
+  wrap.innerHTML='';
+  OPTIONS.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='opt'+(answers[cur]===o.v?' sel':'');
+    b.textContent=o.t;
+    b.onclick=()=>choose(o.v);
+    wrap.appendChild(b);
+  });
+}
+
+function choose(v){
+  answers[cur]=v;
+  render();
+  setTimeout(()=>{
+    if(cur < QUESTIONS.length-1){ cur++; render(); }
+    else { finish(); }
+  },260);
+}
+function prev(){ if(cur>0){cur--; render();} }
+
+function finish(){
+  const scores={}; AXES.forEach(a=>scores[a.key]=0);
+  QUESTIONS.forEach((q,i)=>{ scores[q.a]+= (answers[i]||0); });
+  // max per axis = 3 questions * 3 = 9
+  const ranked = AXES.map(a=>({...a,score:scores[a.key],pct:Math.round(scores[a.key]/9*100)}))
+                     .sort((x,y)=>y.score-x.score);
+  const main=ranked[0], sub=ranked[1];
+
+  window.__lastType = main.type;
+  document.getElementById('rCharImg').src = main.img;
+  document.getElementById('rLabel').textContent = main.label;
+  document.getElementById('rType').textContent = main.type;
+  document.getElementById('rSub').innerHTML =
+    '…という<b>'+main.label+'型の負荷</b>です。次に効いているのは <b>'+sub.type+'</b>';
+  document.getElementById('rDesc').textContent = RESULTS[main.key].desc;
+  document.getElementById('rCutFirst').textContent = RESULTS[main.key].cutFirst;
+  document.getElementById('rToday').textContent = RESULTS[main.key].today;
+  document.getElementById('rSkip').textContent = RESULTS[main.key].skip;
+
+  // bars (sorted, void side emphasised)
+  const bars=document.getElementById('rBars'); bars.innerHTML='';
+  ranked.forEach((a,i)=>{
+    const cls = a.key===main.key?' top' : a.key===sub.key?' sub':'';
+    const voidPct = 100-a.pct;
+    const el=document.createElement('div');
+    el.className='bar'+cls;
+    el.style.animationDelay=(i*0.07)+'s';
+    el.innerHTML=
+      '<div class="bar-head"><span class="bar-name">'+a.name+'</span>'+
+      '<span class="bar-void">余白 '+voidPct+'%</span></div>'+
+      '<div class="bar-track"><div class="bar-fill"></div></div>';
+    bars.appendChild(el);
+    requestAnimationFrame(()=>{ setTimeout(()=>{
+      el.querySelector('.bar-fill').style.width=a.pct+'%';
+    }, 120+i*70); });
+  });
+
+  // actions for main type
+  const acts=document.getElementById('rActs'); acts.innerHTML='';
+  RESULTS[main.key].acts.forEach(([tag,text],i)=>{
+    const keep = tag==='守る';
+    const row=document.createElement('div');
+    row.className='act';
+    row.innerHTML='<div class="act-tag'+(keep?' keep':'')+'">'+tag+'</div><div class="act-text">'+text+'</div>';
+    acts.appendChild(row);
+  });
+
+  // service hints (お金で買える余白)
+  const svc=document.getElementById('rSvc'); svc.innerHTML='';
+  RESULTS[main.key].svc.forEach(([cat,axis])=>{
+    const row=document.createElement('div');
+    row.className='svc-row';
+    row.innerHTML='<div class="svc-cat">'+cat+'</div><div class="svc-axis">'+axis+'</div>';
+    svc.appendChild(row);
+  });
+
+  document.getElementById('pbar').style.width='100%';
+
+  // result code (for the purchase / intake form)
+  const codeLines = [
+    '=== 自分時間がない原因診断 結果コード ===',
+    '主タイプ: '+main.type,
+    '副タイプ: '+sub.type,
+    '余白スコア(0-9 高いほど余白不足): '+ AXES.map(a=>a.name+'='+scores[a.key]).join(' / '),
+    '--- 回答 ---'
+  ];
+  QUESTIONS.forEach((q,i)=>{
+    const opt = OPTIONS.find(o=>o.v===answers[i]);
+    const ax = AXES.find(a=>a.key===q.a).name;
+    codeLines.push(String(i+1).padStart(2,'0')+' ['+ax+'] '+q.t+' → '+(opt?opt.t:'-')+'('+(answers[i]||0)+')');
+  });
+  codeLines.push('=== ここまで ===');
+  document.getElementById('codeArea').value = codeLines.join('\n');
+
+  show('result');
+}
+
+function copyCode(btn){
+  const ta=document.getElementById('codeArea');
+  ta.focus(); ta.select();
+  let ok=false;
+  try{ navigator.clipboard.writeText(ta.value); ok=true; }catch(e){ try{ ok=document.execCommand('copy'); }catch(_){} }
+  const old=btn.textContent;
+  btn.textContent = ok ? 'コピーしました ✓' : '↑ 長押しでコピー';
+  setTimeout(()=>btn.textContent=old,1900);
+}
+
+function shareX(){
+  const t = '私の余白を奪っているのは「'+(window.__lastType||'')+'」でした｜自分時間がない原因診断';
+  const u = location.href.split('#')[0];
+  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(t)+'&url='+encodeURIComponent(u),'_blank');
+}
+function copyLink(btn){
+  const u = location.href.split('#')[0];
+  try{ navigator.clipboard.writeText(u); }catch(e){}
+  const old = btn.textContent;
+  btn.textContent = 'コピーしました ✓';
+  setTimeout(()=>btn.textContent=old, 1900);
+}
+</script>
+</body>
+</html>
