@@ -27,6 +27,7 @@
     --gold:#B49256;        /* 結果のアクセント・ごく控えめに */
     --gold-soft:#CDB387;
     --void:#F7F8F4;        /* 余白の側 */
+    --shu:#b0413e;          /* 朱色（判子） */
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%}
@@ -114,10 +115,13 @@
 
   .lede b{color:var(--ink);font-weight:700}
 
-  /* intro character teaser */
-  .chars{display:flex;justify-content:center;gap:10px;margin-top:26px}
-  .chars .c{width:52px;height:52px;border-radius:50%;overflow:hidden;border:1px solid var(--line);background:var(--void)}
-  .chars img{width:100%;height:100%;object-fit:cover;display:block}
+  /* intro hanko teaser */
+  .chars-hanko{display:flex;justify-content:center;gap:8px;margin-top:26px}
+  .ch{width:44px;height:44px;border-radius:50%;background:var(--shu);color:#f5f0e8;
+    display:flex;align-items:center;justify-content:center;line-height:1;
+    font-family:"Shippori Mincho",serif;font-size:21px;font-weight:700;
+    border:1.5px solid rgba(245,240,232,.25);
+    box-shadow:0 0 0 3px var(--shu),0 0 0 4.5px rgba(245,240,232,.15)}
   .chars-cap{text-align:center;font-size:11.5px;color:var(--muted);margin-top:10px;letter-spacing:.08em}
 
   /* share */
@@ -126,12 +130,16 @@
     font-family:inherit;font-size:13.5px;color:var(--ink-soft);cursor:pointer;letter-spacing:.06em;transition:.25s}
   .share-btn:hover{border-color:var(--ink);color:var(--ink)}
 
-  /* character */
-  .r-char{width:200px;height:200px;margin:6px auto 22px;border-radius:50%;overflow:hidden;
-    border:1px solid var(--line);background:var(--void);animation:rise .7s ease both}
-  .r-char img{width:100%;height:100%;object-fit:cover;display:block}
-  .r-char.noimg{display:none}
-  .r-typelabel{text-align:center;font-size:12px;letter-spacing:.24em;color:var(--gold);font-weight:700;margin-bottom:10px}
+  /* result hanko stamp */
+  .r-hanko{width:180px;height:180px;border-radius:50%;background:var(--shu);
+    color:#f5f0e8;display:flex;align-items:center;justify-content:center;line-height:1;
+    font-family:"Shippori Mincho",serif;font-size:92px;font-weight:700;letter-spacing:0;
+    margin:6px auto 22px;
+    border:2px solid rgba(245,240,232,.22);
+    box-shadow:0 0 0 6px var(--shu),0 0 0 8px rgba(245,240,232,.16),0 6px 28px rgba(176,65,62,.22);
+    animation:rise .7s ease both;
+    text-shadow:0 1px 4px rgba(80,10,8,.28)}
+  .r-typelabel{text-align:center;font-size:13px;letter-spacing:.18em;color:var(--muted);font-weight:500;margin-bottom:14px;margin-top:2px}
 
   /* headline action: 今週まず減らすならこれ */
   .headline{margin-top:30px;background:var(--ink);color:var(--paper);border-radius:4px;padding:26px 24px;animation:rise .6s ease both}
@@ -206,14 +214,15 @@
     <h1 class="title mincho">自分時間がない<br>原因診断<small>診断のあと、「今週やめること」までお渡しします</small></h1>
     <p class="lede">忙しいのに、何に疲れているのか分からない。<br>その「なんとなく」を、18の問いで6つの負荷にほどきます。<br>結果では、<b>今週まず減らすならこれ</b>が見えてきます。</p>
     <p class="meta">所要 約3分 ・ 登録不要</p>
-    <div class="chars">
-      <div class="c"><img src="img/hamster.jpg" alt="" loading="lazy"></div>
-      <div class="c"><img src="img/penguin.jpg" alt="" loading="lazy"></div>
-      <div class="c"><img src="img/cushion.jpg" alt="" loading="lazy"></div>
-      <div class="c"><img src="img/risu.jpg" alt="" loading="lazy"></div>
-      <div class="c"><img src="img/tanuki.jpg" alt="" loading="lazy"></div>
+    <div class="chars-hanko">
+      <div class="ch">詰</div>
+      <div class="ch">迷</div>
+      <div class="ch">重</div>
+      <div class="ch">乱</div>
+      <div class="ch">散</div>
+      <div class="ch">案</div>
     </div>
-    <p class="chars-cap">あなたの余白を奪っているのは、どのコ？</p>
+    <p class="chars-cap">あなたの余白を奪っているのは、どの一字？</p>
     <button class="btn" onclick="start()">診断をはじめる</button>
     <p class="disclaimer">この診断は、あなたの性格や心身の状態を断定するものではありません。日々の生活で「どこに負荷が集まりやすいか」を知るための自己理解コンテンツです。医療・心理療法・法律・金融助言を目的とするものではありません。強い不調や深刻な悩みがある場合は、専門機関や専門家への相談をご検討ください。</p>
   </section>
@@ -234,10 +243,9 @@
 
   <!-- RESULT -->
   <section class="screen" id="result">
-    <p class="r-eyebrow" style="margin-top:40px">あなたの余白を奪っているのは</p>
-    <div class="r-char" id="rChar"><img id="rCharImg" alt="" onerror="this.parentElement.classList.add('noimg')"></div>
+    <p class="r-eyebrow" style="margin-top:40px">あなたの余白を奪っているのは、この一字でした</p>
+    <div class="r-hanko" id="rHanko"></div>
     <p class="r-typelabel" id="rLabel"></p>
-    <h2 class="r-type mincho" id="rType"></h2>
     <p class="r-sub" id="rSub"></p>
     <div class="r-desc" id="rDesc"></div>
 
@@ -293,12 +301,12 @@
 
 <script>
 const AXES = [
-  {key:'time',  name:'時間', type:'予定パンパンハムスター', label:'時間過密', img:'img/hamster.jpg'},
-  {key:'mind',  name:'判断', type:'決めすぎペンギン',       label:'判断疲れ', img:'img/penguin.jpg'},
-  {key:'heart', name:'感情', type:'抱えこみクッション',     label:'感情圧迫', img:'img/cushion.jpg'},
-  {key:'notify',name:'通知', type:'通知ビクビクうさぎ',     label:'通知依存', img:'img/usagi.jpg'},
-  {key:'space', name:'空間', type:'片付け迷子リス',         label:'空間詰まり', img:'img/risu.jpg'},
-  {key:'money', name:'お金', type:'不安貯金たぬき',         label:'金銭不安', img:'img/tanuki.jpg'},
+  {key:'time',   name:'時間', kanji:'詰', label:'時間過密'},
+  {key:'mind',   name:'判断', kanji:'迷', label:'判断疲れ'},
+  {key:'heart',  name:'感情', kanji:'重', label:'感情負荷'},
+  {key:'notify', name:'通知', kanji:'乱', label:'通知過多'},
+  {key:'space',  name:'空間', kanji:'散', label:'空間の詰まり'},
+  {key:'money',  name:'お金', kanji:'案', label:'金銭不安'},
 ];
 
 const QUESTIONS = [
@@ -473,12 +481,11 @@ function finish(){
                      .sort((x,y)=>y.score-x.score);
   const main=ranked[0], sub=ranked[1];
 
-  window.__lastType = main.type;
-  document.getElementById('rCharImg').src = main.img;
+  window.__lastKanji = main.kanji;
+  document.getElementById('rHanko').textContent = main.kanji;
   document.getElementById('rLabel').textContent = main.label;
-  document.getElementById('rType').textContent = main.type;
   document.getElementById('rSub').innerHTML =
-    '…という<b>'+main.label+'型の負荷</b>です。次に効いているのは <b>'+sub.type+'</b>';
+    '次に影響しているのは <b>「'+sub.kanji+'」'+sub.label+'</b>';
   document.getElementById('rDesc').textContent = RESULTS[main.key].desc;
   document.getElementById('rCutFirst').textContent = RESULTS[main.key].cutFirst;
   document.getElementById('rToday').textContent = RESULTS[main.key].today;
@@ -526,8 +533,8 @@ function finish(){
   // result code (for the purchase / intake form)
   const codeLines = [
     '=== 自分時間がない原因診断 結果コード ===',
-    '主タイプ: '+main.type,
-    '副タイプ: '+sub.type,
+    '主タイプ: 「'+main.kanji+'」'+main.label,
+    '副タイプ: 「'+sub.kanji+'」'+sub.label,
     '余白スコア(0-9 高いほど余白不足): '+ AXES.map(a=>a.name+'='+scores[a.key]).join(' / '),
     '--- 回答 ---'
   ];
@@ -553,7 +560,7 @@ function copyCode(btn){
 }
 
 function shareX(){
-  const t = '私の余白を奪っているのは「'+(window.__lastType||'')+'」でした｜自分時間がない原因診断';
+  const t = '私の余白を奪っているのは「'+(window.__lastKanji||'')+'」でした｜自分時間がない原因診断';
   const u = location.href.split('#')[0];
   window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(t)+'&url='+encodeURIComponent(u),'_blank');
 }
