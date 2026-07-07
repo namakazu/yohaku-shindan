@@ -676,9 +676,17 @@ function buildDiagnosisRecord(scores, mainKey){
   };
 }
 
+const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbw3RIK6k_P6ycJr_LXvmTFQFO2j-fcnyF5J_5n3pZ0w56-tlSVauwsGRZ62rk4EgMuffw/exec';
+
 function sendDiagnosisRecord(record){
-  console.log('diagnosis record (GAS送信は未実装):', JSON.stringify(record));
-  // TODO(②): fetch(GAS_WEBAPP_URL, { method: 'POST', mode: 'no-cors', ... })
+  try {
+    fetch(GAS_WEBAPP_URL, {
+      method: 'POST',
+      mode: 'no-cors',                            // GASはCORSヘッダーを返せないため必須
+      headers: { 'Content-Type': 'text/plain' },  // preflightリクエスト回避のためtext/plain
+      body: JSON.stringify(record)
+    }).catch(function(){}); // 送信失敗しても診断体験には影響させない
+  } catch(e){}
 }
 
 async function copyCode(btn){
