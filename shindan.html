@@ -200,6 +200,22 @@
 
   .credit{text-align:center;font-size:11px;color:var(--muted);letter-spacing:.2em;padding:34px 0 46px}
 
+  /* ---------- attr ---------- */
+  .attr-lead{font-size:14px;line-height:2;color:var(--ink-soft);margin-bottom:28px}
+  .attr-lead b{color:var(--ink);font-weight:600;display:block;margin-bottom:6px}
+  .attr-lead small{font-size:12px;color:var(--muted);display:block;line-height:1.9}
+  .attr-group{margin-bottom:24px}
+  .attr-q{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:10px;letter-spacing:.03em}
+  .attr-opts{display:flex;flex-wrap:wrap;gap:8px}
+  .attr-opt{padding:9px 16px;background:var(--void);border:1px solid var(--line);border-radius:2px;
+    font-family:inherit;font-size:13.5px;color:var(--ink-soft);cursor:pointer;transition:.2s;letter-spacing:.04em}
+  .attr-opt:hover{border-color:var(--ink);color:var(--ink)}
+  .attr-opt.sel{border-color:var(--indigo);color:var(--indigo);background:#fff}
+
+  /* privacy notice */
+  .privacy-note{font-size:11px;line-height:1.9;color:var(--muted);text-align:center;
+    border-top:1px solid var(--line);padding:20px 28px 46px}
+
   @media (prefers-reduced-motion: reduce){
     *{animation:none!important;transition:none!important}
   }
@@ -240,6 +256,30 @@
       <div class="opts" id="opts"></div>
     </div>
     <div class="q-nav"><button class="back" id="back" onclick="prev()">← もどる</button></div>
+  </section>
+
+  <!-- ATTR -->
+  <section class="screen" id="attr">
+    <div class="q-top">
+      <div class="progress-line"><span style="width:100%"></span></div>
+      <div class="q-count"><span>あと少し</span><span class="q-axis">あなたについて</span></div>
+    </div>
+    <div class="q-body">
+      <p class="attr-lead"><b>最後に、あなたのことを少しだけ教えてください。</b><small>今後の診断の改善に使わせていただきます。答えたくない項目はスキップでOKです。</small></p>
+      <div class="attr-group">
+        <div class="attr-q">Q1. 年代を教えてください</div>
+        <div class="attr-opts" id="attrAge"></div>
+      </div>
+      <div class="attr-group">
+        <div class="attr-q">Q2. いまの立場に近いものはどれですか？</div>
+        <div class="attr-opts" id="attrOcc"></div>
+      </div>
+      <div class="attr-group">
+        <div class="attr-q">Q3. お子さんと一緒に暮らしていますか？</div>
+        <div class="attr-opts" id="attrChild"></div>
+      </div>
+    </div>
+    <button class="btn" onclick="showResult()">結果を見る</button>
   </section>
 
   <!-- RESULT -->
@@ -299,9 +339,14 @@
     <p class="credit">余白を、作ろう。</p>
   </section>
 
+  <p class="privacy-note">診断の回答データ（回答傾向・結果タイプ・年代などの属性）は、個人を特定しない統計情報としてサービスの改善・発信に利用します。氏名・メールアドレスなどの個人情報は取得していません。</p>
+
 </div>
 
 <script>
+// 流入元：?from= パラメータを取得し保持（OGP正規URLには付与しない）
+const referrer = (new URLSearchParams(location.search).get('from') || 'direct');
+
 const AXES = [
   {key:'time',   name:'時間', kanji:'詰', label:'時間過密'},
   {key:'mind',   name:'判断', kanji:'迷', label:'判断疲れ'},
@@ -433,11 +478,40 @@ const RESULTS = {
     ]},
 };
 
+// 属性質問の選択肢定義
+const ATTR_AGE = [
+  {t:'20代以下', v:'20s_under'},
+  {t:'30代',     v:'30s'},
+  {t:'40代',     v:'40s'},
+  {t:'50代以上', v:'50s_over'},
+  {t:'答えない', v:null},
+];
+const ATTR_OCC = [
+  {t:'会社員・公務員',       v:'employee'},
+  {t:'フリーランス・自営業', v:'freelance'},
+  {t:'主婦・主夫',           v:'homemaker'},
+  {t:'学生',                 v:'student'},
+  {t:'その他',               v:'other'},
+  {t:'答えない',             v:null},
+];
+const ATTR_CHILD = [
+  {t:'はい',     v:true},
+  {t:'いいえ',   v:false},
+  {t:'答えない', v:null},
+];
+
 let answers = new Array(QUESTIONS.length).fill(null);
 let cur = 0;
+// undefined = 未選択（selなし）、null = 「答えない」を明示選択
+let attrs = {ageGroup: undefined, occupation: undefined, hasChild: undefined};
 
 function start(){ show('quiz'); cur=0; render(); }
-function reset(){ answers.fill(null); cur=0; show('intro'); }
+function reset(){
+  answers.fill(null);
+  cur=0;
+  attrs={ageGroup:undefined, occupation:undefined, hasChild:undefined};
+  show('intro');
+}
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -470,10 +544,35 @@ function choose(v){
   render();
   setTimeout(()=>{
     if(cur < QUESTIONS.length-1){ cur++; render(); }
-    else { finish(); }
+    else { showAttr(); }
   },260);
 }
 function prev(){ if(cur>0){cur--; render();} }
+
+// 属性画面を描画して表示
+function showAttr(){
+  renderAttrOpts('attrAge',   ATTR_AGE,   'ageGroup');
+  renderAttrOpts('attrOcc',   ATTR_OCC,   'occupation');
+  renderAttrOpts('attrChild', ATTR_CHILD, 'hasChild');
+  show('attr');
+}
+
+function renderAttrOpts(containerId, opts, field){
+  const wrap = document.getElementById(containerId);
+  wrap.innerHTML='';
+  opts.forEach(o=>{
+    const b=document.createElement('button');
+    // undefined(未選択)は sel なし。明示的に選んだ値のみ sel
+    const sel = attrs[field] !== undefined && attrs[field] === o.v;
+    b.className='attr-opt'+(sel?' sel':'');
+    b.textContent=o.t;
+    b.onclick=()=>{ attrs[field]=o.v; renderAttrOpts(containerId,opts,field); };
+    wrap.appendChild(b);
+  });
+}
+
+// 属性画面の「結果を見る」ボタンから呼ぶ
+function showResult(){ finish(); }
 
 function finish(){
   const scores={}; AXES.forEach(a=>scores[a.key]=0);
@@ -548,7 +647,38 @@ function finish(){
   codeLines.push('=== ここまで ===');
   document.getElementById('codeArea').value = codeLines.join('\n');
 
+  // 送信失敗が診断体験に影響しないよう try で包む
+  try { sendDiagnosisRecord(buildDiagnosisRecord(scores, main.key)); }
+  catch(e){ console.warn('sendDiagnosisRecord error:', e); }
+
   show('result');
+}
+
+function buildDiagnosisRecord(scores, mainKey){
+  const jst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  return {
+    timestamp: jst.toISOString().replace('Z', '+09:00'),
+    scores: {
+      time:   scores.time,
+      mind:   scores.mind,
+      heart:  scores.heart,
+      notify: scores.notify,
+      space:  scores.space,
+      money:  scores.money,
+    },
+    resultType: mainKey,
+    attributes: {
+      ageGroup:   attrs.ageGroup   !== undefined ? attrs.ageGroup   : null,
+      occupation: attrs.occupation !== undefined ? attrs.occupation : null,
+      hasChild:   attrs.hasChild   !== undefined ? attrs.hasChild   : null,
+    },
+    referrer,
+  };
+}
+
+function sendDiagnosisRecord(record){
+  console.log('diagnosis record (GAS送信は未実装):', JSON.stringify(record));
+  // TODO(②): fetch(GAS_WEBAPP_URL, { method: 'POST', mode: 'no-cors', ... })
 }
 
 async function copyCode(btn){
@@ -564,8 +694,9 @@ async function copyCode(btn){
 
 function shareX(){
   const t = '私の余白を奪っているのは「'+(window.__lastKanji||'')+'」でした｜自分時間がない原因診断';
-  const u = location.href.split('#')[0];
-  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(t)+'&url='+encodeURIComponent(u),'_blank');
+  const base = location.href.split('?')[0].split('#')[0];
+  // シェアURLに ?from=share を付与して流入元を識別（OGP正規URLは汚さない）
+  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(t)+'&url='+encodeURIComponent(base+'?from=share'),'_blank');
 }
 async function copyLink(btn){
   const u = location.href.split('#')[0];
