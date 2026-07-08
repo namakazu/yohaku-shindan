@@ -284,32 +284,32 @@
 
   <!-- RESULT -->
   <section class="screen" id="result">
-    <p class="r-eyebrow" style="margin-top:40px">あなたの余白を奪っているのは、この一字でした</p>
+    <p class="r-eyebrow" id="rEyebrow" style="margin-top:40px">あなたの余白を奪っているのは、この一字でした</p>
     <div class="r-hanko" id="rHanko"></div>
     <p class="r-typelabel" id="rLabel"></p>
     <p class="r-sub" id="rSub"></p>
     <div class="r-desc" id="rDesc"></div>
 
-    <div class="headline">
+    <div class="headline" id="rHeadline">
       <div class="hl-label">今週、まず減らすならこれ</div>
       <div class="hl-text" id="rCutFirst"></div>
     </div>
-    <div class="twocol">
+    <div class="twocol" id="rTwocol">
       <div class="mini do"><div class="m-label">今日10分でやること</div><div class="m-text" id="rToday"></div></div>
       <div class="mini skip"><div class="m-label">今日はやらなくていいこと</div><div class="m-text" id="rSkip"></div></div>
     </div>
 
-    <div class="r-section">
+    <div class="r-section" id="rBarsSection">
       <div class="r-label">余白を奪っている要因</div>
       <div id="rBars"></div>
     </div>
 
-    <div class="r-section">
+    <div class="r-section" id="rActsSection">
       <div class="r-label">1週間でできる、4つのレバー</div>
       <div class="acts" id="rActs"></div>
     </div>
 
-    <div class="r-section">
+    <div class="r-section" id="rSvcSection">
       <div class="r-label">お金で買える余白</div>
       <div class="svc" id="rSvc"></div>
     </div>
@@ -323,15 +323,15 @@
     </div>
 
     <div class="r-section" id="codeSection">
-      <div class="r-label">もっと具体的に減らしたい方へ</div>
-      <div class="teaser">
+      <div class="r-label" id="codeSectionLabel">もっと具体的に減らしたい方へ</div>
+      <div class="teaser" id="paidTeaser">
         <div class="t-title">1週間やめることプラン（準備中）</div>
         <div class="t-body">あなたのタイプに合わせた、1週間ぶんの「やめる・任せる・自動化・買って減らす」リストと、家族や職場への伝え方テンプレ。現在PDFとして準備中です。</div>
       </div>
-      <p style="font-size:13px;color:var(--ink-soft);line-height:1.95;margin-bottom:14px">公開のお知らせはXでお届けします。下の結果コードを控えておくと、プランを自分のタイプに照らしてそのまま使えます。</p>
+      <p id="codeIntro" style="font-size:13px;color:var(--ink-soft);line-height:1.95;margin-bottom:14px">公開のお知らせはXでお届けします。下の結果コードを控えておくと、プランを自分のタイプに照らしてそのまま使えます。</p>
       <textarea id="codeArea" readonly class="codebox"></textarea>
       <button class="btn ghost" style="margin-top:12px" onclick="copyCode(this)">結果コードをコピー</button>
-      <a class="btn ghost" style="margin-top:12px" href="https://x.com/YOUR_HANDLE" target="_blank" rel="noopener">Xで公開のお知らせを受け取る</a>
+      <a class="btn ghost" id="xNotifyLink" style="margin-top:12px" href="https://x.com/kazutech1000" target="_blank" rel="noopener">Xで公開のお知らせを受け取る</a>
     </div>
 
     <p class="r-note">この診断は「正解」ではありません。いまの自分を眺めて、今週ひとつだけ動かすための地図です。<br>全部やる必要はありません。一番ゆるそうな1つから。</p>
@@ -478,6 +478,20 @@ const RESULTS = {
     ]},
 };
 
+// 「余白、保てています。」判定のしきい値（検証済み・数値のみ変更可）
+const OK_THRESHOLD = 12; // 合計スコア(0-54)がこれ以下なら「保てている」候補
+const AXIS_CAP = 5;      // 最高スコア軸がこれ以下でないとキープ扱いにしない（1軸だけ突出した人を除外する安全弁）
+
+// keep判定時、最もスコアが高かった軸ごとの守り文言（ゲインフレーム）
+const KEEP_GUARD = {
+  time:  {label:'予定の詰まり',     body:'空いた時間に予定を足したくなったら、それは余白の前借りです。カレンダーの空白は、埋めずに守ってください。'},
+  mind:  {label:'決めごとの増加',   body:'選択肢を広げすぎない仕組み（定番化・ルール化）が、いまの軽さを守ります。'},
+  heart: {label:'頼まれごとの抱え込み', body:'気持ちよく引き受けられる量を超えそうなときに一呼吸置けるかが、いまの状態を守る鍵です。'},
+  notify:{label:'通知の増加',       body:'新しいアプリやグループに入るたび、通知設定を最初に絞る習慣が、いまの静けさを守ります。'},
+  space: {label:'モノの流入',       body:'増えたものを置く「仮置き場」が常設化しはじめたら注意。入口で減らすのが一番楽です。'},
+  money: {label:'先の見えない支出', body:'大きな出費の予定が見えたら、早めに金額を紙に書き出すだけで、いまの安心は守れます。'},
+};
+
 // 属性質問の選択肢定義
 const ATTR_AGE = [
   {t:'20代以下', v:'20s_under'},
@@ -581,64 +595,92 @@ function finish(){
   const ranked = AXES.map(a=>({...a,score:scores[a.key],pct:Math.round(scores[a.key]/9*100)}))
                      .sort((x,y)=>y.score-x.score);
   const main=ranked[0], sub=ranked[1];
+  const total = AXES.reduce((s,a)=>s+scores[a.key],0);
+  // AXIS_CAPは「1軸だけ強く当てはまる人」をキープ扱いにしないための安全弁
+  const isKeep = total <= OK_THRESHOLD && main.score <= AXIS_CAP;
+  window.__isKeep = isKeep;
 
-  window.__lastKanji = main.kanji;
-  document.getElementById('rHanko').textContent = main.kanji;
-  document.getElementById('rLabel').textContent = main.label;
-  document.getElementById('rSub').innerHTML =
-    '次に影響しているのは <b>「'+sub.kanji+'」'+sub.label+'</b>';
-  document.getElementById('rDesc').textContent = RESULTS[main.key].desc;
-  document.getElementById('rCutFirst').textContent = RESULTS[main.key].cutFirst;
-  document.getElementById('rToday').textContent = RESULTS[main.key].today;
-  document.getElementById('rSkip').textContent = RESULTS[main.key].skip;
-
-  // bars (sorted, void side emphasised)
-  const bars=document.getElementById('rBars'); bars.innerHTML='';
-  ranked.forEach((a,i)=>{
-    const cls = a.key===main.key?' top' : a.key===sub.key?' sub':'';
-    const voidPct = 100-a.pct;
-    const el=document.createElement('div');
-    el.className='bar'+cls;
-    el.style.animationDelay=(i*0.07)+'s';
-    el.innerHTML=
-      '<div class="bar-head"><span class="bar-name">'+a.name+'</span>'+
-      '<span class="bar-void">余白 '+voidPct+'%</span></div>'+
-      '<div class="bar-track"><div class="bar-fill"></div></div>';
-    bars.appendChild(el);
-    requestAnimationFrame(()=>{ setTimeout(()=>{
-      el.querySelector('.bar-fill').style.width=a.pct+'%';
-    }, 120+i*70); });
+  // タイプ深掘りセクション（keepパスでは非表示にし、守り文言で締める）
+  ['rHeadline','rTwocol','rBarsSection','rActsSection','rSvcSection'].forEach(id=>{
+    document.getElementById(id).style.display = isKeep ? 'none' : '';
   });
+  document.getElementById('rSub').style.display = isKeep ? 'none' : '';
+  document.getElementById('rEyebrow').style.display = isKeep ? 'none' : '';
+  document.getElementById('paidTeaser').style.display = isKeep ? 'none' : '';
+  document.getElementById('codeIntro').style.display = isKeep ? 'none' : '';
+  document.getElementById('xNotifyLink').style.display = isKeep ? 'none' : '';
 
-  // actions for main type
-  const acts=document.getElementById('rActs'); acts.innerHTML='';
-  RESULTS[main.key].acts.forEach(([tag,text],i)=>{
-    const keep = tag==='守る';
-    const row=document.createElement('div');
-    row.className='act';
-    row.innerHTML='<div class="act-tag'+(keep?' keep':'')+'">'+tag+'</div><div class="act-text">'+text+'</div>';
-    acts.appendChild(row);
-  });
+  if(isKeep){
+    window.__lastKanji = '保';
+    document.getElementById('rHanko').textContent = '保';
+    document.getElementById('rLabel').textContent = '余白、保てています。';
+    const guard = KEEP_GUARD[main.key];
+    document.getElementById('rDesc').textContent =
+      '18の問いに、あなたはほとんど頷きませんでした。いま、自分の時間・注意・感情を、'+
+      '自分の手の中に置けている状態です。これは当たり前じゃなくて、ちゃんとした成果です。'+
+      'ただ、余白は「ある」ものじゃなく「守る」もの。あなたの場合、崩れるとしたら'+
+      '「'+guard.label+'」からです。'+guard.body;
+    document.getElementById('codeSectionLabel').textContent = '結果コード';
+  } else {
+    window.__lastKanji = main.kanji;
+    document.getElementById('rHanko').textContent = main.kanji;
+    document.getElementById('rLabel').textContent = main.label;
+    document.getElementById('rSub').innerHTML =
+      '次に影響しているのは <b>「'+sub.kanji+'」'+sub.label+'</b>';
+    document.getElementById('rDesc').textContent = RESULTS[main.key].desc;
+    document.getElementById('rCutFirst').textContent = RESULTS[main.key].cutFirst;
+    document.getElementById('rToday').textContent = RESULTS[main.key].today;
+    document.getElementById('rSkip').textContent = RESULTS[main.key].skip;
+    document.getElementById('codeSectionLabel').textContent = 'もっと具体的に減らしたい方へ';
 
-  // service hints (お金で買える余白)
-  const svc=document.getElementById('rSvc'); svc.innerHTML='';
-  RESULTS[main.key].svc.forEach(([cat,axis])=>{
-    const row=document.createElement('div');
-    row.className='svc-row';
-    row.innerHTML='<div class="svc-cat">'+cat+'</div><div class="svc-axis">'+axis+'</div>';
-    svc.appendChild(row);
-  });
+    // bars (sorted, void side emphasised)
+    const bars=document.getElementById('rBars'); bars.innerHTML='';
+    ranked.forEach((a,i)=>{
+      const cls = a.key===main.key?' top' : a.key===sub.key?' sub':'';
+      const voidPct = 100-a.pct;
+      const el=document.createElement('div');
+      el.className='bar'+cls;
+      el.style.animationDelay=(i*0.07)+'s';
+      el.innerHTML=
+        '<div class="bar-head"><span class="bar-name">'+a.name+'</span>'+
+        '<span class="bar-void">余白 '+voidPct+'%</span></div>'+
+        '<div class="bar-track"><div class="bar-fill"></div></div>';
+      bars.appendChild(el);
+      requestAnimationFrame(()=>{ setTimeout(()=>{
+        el.querySelector('.bar-fill').style.width=a.pct+'%';
+      }, 120+i*70); });
+    });
+
+    // actions for main type
+    const acts=document.getElementById('rActs'); acts.innerHTML='';
+    RESULTS[main.key].acts.forEach(([tag,text],i)=>{
+      const keepTag = tag==='守る';
+      const row=document.createElement('div');
+      row.className='act';
+      row.innerHTML='<div class="act-tag'+(keepTag?' keep':'')+'">'+tag+'</div><div class="act-text">'+text+'</div>';
+      acts.appendChild(row);
+    });
+
+    // service hints (お金で買える余白)
+    const svc=document.getElementById('rSvc'); svc.innerHTML='';
+    RESULTS[main.key].svc.forEach(([cat,axis])=>{
+      const row=document.createElement('div');
+      row.className='svc-row';
+      row.innerHTML='<div class="svc-cat">'+cat+'</div><div class="svc-axis">'+axis+'</div>';
+      svc.appendChild(row);
+    });
+  }
 
   document.getElementById('pbar').style.width='100%';
 
   // result code (for the purchase / intake form)
   const codeLines = [
     '=== 自分時間がない原因診断 結果コード ===',
-    '主タイプ: 「'+main.kanji+'」'+main.label,
-    '副タイプ: 「'+sub.kanji+'」'+sub.label,
-    '余白スコア(0-9 高いほど余白不足): '+ AXES.map(a=>a.name+'='+scores[a.key]).join(' / '),
-    '--- 回答 ---'
+    isKeep ? '主タイプ: 「保」余白、保てています。' : '主タイプ: 「'+main.kanji+'」'+main.label,
   ];
+  if(!isKeep){ codeLines.push('副タイプ: 「'+sub.kanji+'」'+sub.label); }
+  codeLines.push('余白スコア(0-9 高いほど余白不足): '+ AXES.map(a=>a.name+'='+scores[a.key]).join(' / '));
+  codeLines.push('--- 回答 ---');
   QUESTIONS.forEach((q,i)=>{
     const opt = OPTIONS.find(o=>o.v===answers[i]);
     const ax = AXES.find(a=>a.key===q.a).name;
@@ -648,7 +690,7 @@ function finish(){
   document.getElementById('codeArea').value = codeLines.join('\n');
 
   // 送信失敗が診断体験に影響しないよう try で包む
-  try { sendDiagnosisRecord(buildDiagnosisRecord(scores, main.key)); }
+  try { sendDiagnosisRecord(buildDiagnosisRecord(scores, isKeep ? 'keep' : main.key)); }
   catch(e){ console.warn('sendDiagnosisRecord error:', e); }
 
   show('result');
@@ -701,7 +743,9 @@ async function copyCode(btn){
 }
 
 function shareX(){
-  const t = '私の余白を奪っているのは「'+(window.__lastKanji||'')+'」でした｜自分時間がない原因診断';
+  const t = window.__isKeep
+    ? '私の余白、いまは保てているようです｜自分時間がない原因診断'
+    : '私の余白を奪っているのは「'+(window.__lastKanji||'')+'」でした｜自分時間がない原因診断';
   const base = location.href.split('?')[0].split('#')[0];
   // シェアURLに ?from=share を付与して流入元を識別（OGP正規URLは汚さない）
   window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(t)+'&url='+encodeURIComponent(base+'?from=share'),'_blank');
