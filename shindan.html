@@ -280,6 +280,7 @@
       </div>
     </div>
     <button class="btn" onclick="showResult()">結果を見る</button>
+    <div class="q-nav"><button class="back" onclick="backFromAttr()">← もどる</button></div>
   </section>
 
   <!-- RESULT -->
@@ -571,6 +572,13 @@ function showAttr(){
   show('attr');
 }
 
+// 属性画面から最後の設問に戻る（回答ミスに気づいても直せるように）
+function backFromAttr(){
+  cur = QUESTIONS.length-1;
+  show('quiz');
+  render();
+}
+
 function renderAttrOpts(containerId, opts, field){
   const wrap = document.getElementById(containerId);
   wrap.innerHTML='';
@@ -588,11 +596,22 @@ function renderAttrOpts(containerId, opts, field){
 // 属性画面の「結果を見る」ボタンから呼ぶ
 function showResult(){ finish(); }
 
+// Fisher-Yates。スコア同点の軸をランダムな順にするための下準備
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
 function finish(){
   const scores={}; AXES.forEach(a=>scores[a.key]=0);
   QUESTIONS.forEach((q,i)=>{ scores[q.a]+= (answers[i]||0); });
   // max per axis = 3 questions * 3 = 9
-  const ranked = AXES.map(a=>({...a,score:scores[a.key],pct:Math.round(scores[a.key]/9*100)}))
+  // 同点の軸が常にAXES先頭（時間）に固定されないよう、先にシャッフルしてから
+  // スコア降順で安定ソート（同点グループ内の順序はシャッフル結果を維持する）
+  const ranked = shuffle(AXES.map(a=>({...a,score:scores[a.key],pct:Math.round(scores[a.key]/9*100)})))
                      .sort((x,y)=>y.score-x.score);
   const main=ranked[0], sub=ranked[1];
   const total = AXES.reduce((s,a)=>s+scores[a.key],0);
